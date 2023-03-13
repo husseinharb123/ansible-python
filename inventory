@@ -1,9 +1,11 @@
-// inventory with list of adress
+// inventory with list of address
 
 husseinvm1@192.168.0.106 
 husseinvm2@192.168.0.111 
 
-// inventory with list of adress and varibles that are used in playbook
+
+
+// inventory with list of address and varibles that are used in playbook
 
 husseinvm1@192.168.0.106 package_name=vim-nox
 husseinvm2@192.168.0.111 package_name=vim-nox
