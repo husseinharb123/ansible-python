@@ -26,7 +26,8 @@ def run_playbook():
     )
 
     print(f"Playbook execution status: {respond.status}")
-    return "okes"
+    
+    return "done",200
 
 if __name__ == '__main__':
     app.run(debug=True)
