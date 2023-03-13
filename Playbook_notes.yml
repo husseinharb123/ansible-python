@@ -1,0 +1,202 @@
+---
+- hosts: all
+  become: true
+  become_method: su
+  # vars:
+  # ansible_become_pass: harb123 or add password by this way
+  tasks:
+  - name: update repository index
+    apt:
+      update_cache: true
+    change_when: false # set change to 0 even if changed
+    when: ansible_distribution == "Ubuntu"  and ansible_distribution_version == "8.2"
+  - name: install apache2 server
+    apt:
+      name: apache2
+      state: latest
+    when: ansible_distribution in ["Ubuntu","Debian"]
+
+  - name: remove apache2 server
+    apt:
+      name: apache2
+      state: absent
+
+
+--- 
+#  refactor playbook assemble multipe plays into one
+
+- hosts: all
+  become: true
+  tasks:
+  - name: install package1 and package2 and update repository index
+    apt:
+      update_cache: true
+      name:
+      - package1
+      - package2
+      state: latest
+---
+# refactor playbook (generic ) add variables to inventory
+
+
+- hosts: all
+  become: true
+  tasks:
+  - name: install package1 and package2 and update repository index
+    package:
+      update_cache: true
+      name:
+      - "{{ apache_package }}"
+      - "{{ php_package }}"
+
+--- 
+#  palybook specficing  groups as a host
+
+- hosts: nameofgroup in inventory
+  become: true
+  tasks:
+--- 
+#  palybook  add pre_tasks which run first
+
+- hosts: all
+  become: true
+  pre_tasks:
+
+
+---
+#playbook with tags
+- hosts: all
+  become: true
+  tasks:
+  - name: update repository index
+    tags: always  # always runit
+    apt:
+      update_cache: true
+    when: ansible_distribution == "Ubuntu"  and ansible_distribution_version == "8.2"
+  - name: install apache2 server
+    tags: apache # specfic tag
+    apt:
+      name: apache2
+      state: latest
+    when: ansible_distribution in ["Ubuntu","Debian"]
+
+  - name: remove apache2 server
+    apt:
+      name: apache2
+      state: absent
+
+---
+# copy files
+- hosts: all
+  become: true
+  tasks:
+  - name: copyfile a file 
+    copy:
+      scr: file path
+      dest: file path
+      owner: root
+      group : root 
+      mode: 0644
+---     
+# install unzip and unarchive a file 
+- hosts: workstations
+  become: true
+  tasks:
+   - name: install unzip
+     package:
+       name: unzip
+ 
+   - name: install terraform
+     unarchive:
+        src: https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip
+        dest: /usr/local/bin
+        remote_src: yes
+        mode: 0755
+        owner: root
+        group: root 
+--- 
+# manage services 
+- name: start service 
+  service:
+    name: nameofservice 
+    state: started
+    enabled: yes even # even after reboot
+
+
+---
+# edit a line in a file then restart a service when the config file is changed 
+   - name: change e-mail address for admin
+     tags: apache,centos,httpd
+     lineinfile:
+       path: /etc/httpd/conf/httpd.conf
+       regexp: '^ServerAdmin'
+       line: ServerAdmin somebody@somewhere.net
+     when: ansible_distribution == "CentOS"
+     register: httpd # store the state of task 
+ 
+   - name: restart httpd (CentOS)
+     tags: apache,centos,httpd
+     service:
+       name: httpd
+       state: restarted
+     when: httpd.changed  # when state is change
+
+--- 
+# add users to all 
+- hosts: all
+  become: true 
+  tasks: 
+  - name: add users 
+    user:
+      name: hussein
+      group: hussein 
+---
+# create a user
+- hosts: all
+  become: true 
+  tasks: 
+  - name: create simone user
+    user:
+      name: simone
+      groups: root
+  
+  - name: add ssh key for simone # move the public key to authorized_key
+    authorized_key:
+      user: simone
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAe7/ofWLNBq3+fRn3UmgAizdicLs9vcS4Oj8VSOD1S/ ansible"
+      
+  - name: add sudoers file for simone # i am doing this to use sudo without password 
+    copy:
+      src: sudoer_simone
+      dest: /etc/sudoers.d/simone
+      owner: root
+      group: root
+      mode: 0440
+
+--- 
+# how to use roles 
+
+- hosts: all
+  become: true
+  roles:
+    - base
+  
+- hosts: workstations
+  become: true
+  roles:
+    - workstations
+
+- hosts: web_servers
+  become: true
+  roles:
+    - web_servers
+
+- hosts: db_servers
+  become: true
+  roles:
+    - db_servers
+
+- hosts: file_servers
+  become: true
+  roles:
+    - file_servers

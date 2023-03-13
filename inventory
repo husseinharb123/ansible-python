@@ -1,0 +1,18 @@
+// inventory with list of adress
+
+husseinvm1@192.168.0.106 
+husseinvm2@192.168.0.111 
+
+// inventory with list of adress and varibles that are used in playbook
+
+husseinvm1@192.168.0.106 package_name=vim-nox
+husseinvm2@192.168.0.111 package_name=vim-nox
+
+// inventory with groups 
+
+[group1]
+husseinvm1@192.168.0.106 
+
+[group2]
+husseinvm2@192.168.0.111 
+

@@ -1,0 +1,16 @@
+---
+- hosts: all
+  become: true
+  become_method: su
+  # vars: 
+  # ansible_become_pass: harb123 
+  tasks:
+  - name: update repository index
+    apt:
+      update_cache: true
+  - name: install apache2 server
+    apt:
+      name: apache2
+      state: latest
+
+
